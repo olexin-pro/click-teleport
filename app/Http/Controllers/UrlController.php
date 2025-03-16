@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\UrlStoreRequest;
+use App\Http\Resources\UrlResource;
 use AshAllenDesign\ShortURL\Exceptions\ShortURLException;
 use AshAllenDesign\ShortURL\Models\ShortURL;
 use BaconQrCode\Renderer\Color\Rgb;
@@ -25,30 +26,29 @@ class UrlController extends Controller
      */
     public function store(UrlStoreRequest $request)
     {
-
         $builder = $this->urlBuilder->destinationUrl($request->validated('url'));
 
-        if($request->filled('key')) {
+        if ($request->filled('key')) {
             $builder->urlKey($request->validated('key'));
         }
 
-        if($request->filled('single_use') && (bool)$request->validated('single_use', false)){
+        if ($request->filled('single_use') && (bool)$request->validated('single_use', false)) {
             $builder->singleUse();
         }
 
-        if($request->filled('redirect_code')){
+        if ($request->filled('redirect_code')) {
             $builder->redirectStatusCode((int)$request->validated('redirect_code', 301));
         }
 
-        if($request->filled('activated_at')){
+        if ($request->filled('activated_at')) {
             $builder->activateAt(Date::parse($request->validated('activated_at')));
         }
 
-        if($request->filled('forward_query') && (bool)$request->validated('forward_query', false)){
+        if ($request->filled('forward_query') && (bool)$request->validated('forward_query', false)) {
             $builder->forwardQueryParams();
         }
 
-        if($request->filled('deactivateAt')){
+        if ($request->filled('deactivateAt')) {
             $builder->activateAt(Date::parse($request->validated('deactivateAt')));
         }
 
@@ -57,6 +57,21 @@ class UrlController extends Controller
         })->make();
 
         return back();
+    }
+
+    public function show(ShortURL $shortURL)
+    {
+        return Inertia::render('Link', [
+            'url' => [
+                'id' => $shortURL->id,
+                "destination_url" => $shortURL->destination_url,
+                "url_key" => $shortURL->url_key,
+                "default_short_url" => $shortURL->default_short_url,
+                "created_at" => $shortURL->created_at,
+                'visit_count' => $shortURL->visits()->count(),
+                'visits' => $shortURL->visits()->paginate(),
+            ]
+        ]);
     }
 
 

@@ -17,7 +17,7 @@ defineProps({
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="card">
+                <div class="">
                     <create-url/>
                 </div>
                 <div class="card mt-4">
@@ -30,6 +30,6 @@ defineProps({
 
 <style scoped>
 .card{
-    @apply bg-white dark:bg-gray-800 overflow-hidden sm:rounded-lg p-4 shadow-sm;
+    @apply bg-white dark:bg-gray-800 sm:rounded-lg p-4 shadow-sm;
 }
 </style>

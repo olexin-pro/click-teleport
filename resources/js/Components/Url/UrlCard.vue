@@ -1,9 +1,19 @@
 <script setup>
-import {computed} from "vue";
+import {computed, ref} from "vue";
+import Popover from "@/Components/Popover.vue";
+
+import {ClipboardDocumentIcon, ClipboardDocumentCheckIcon} from '@heroicons/vue/24/outline'
+import {ArrowTopRightOnSquareIcon, ClipboardIcon} from '@heroicons/vue/24/solid'
+import Toast from "@/Components/Toast.vue";
+import QRCodeLink from "@/Components/Url/QRCodeLink.vue";
+import NavLink from "@/Components/NavLink.vue";
 
 const props = defineProps({
     url: Object
 })
+
+const toastIsShow = ref(false)
+const copied = ref(false)
 
 const date = computed(() => (new Date(Date.parse(props.url.created_at)))
     .toLocaleDateString(undefined,{
@@ -13,39 +23,68 @@ const date = computed(() => (new Date(Date.parse(props.url.created_at)))
     }));
 
 function copyToClipboard() {
+
     navigator.clipboard.writeText(props.url.default_short_url)
         .then(() => {
-            // Можно добавить уведомление или подсказку пользователю, что ссылка скопирована
-            alert("Ссылка скопирована в буфер обмена!");
+            runToast()
+            copyCheck()
         })
         .catch((error) => {
             console.error("Не удалось скопировать ссылку: ", error);
         });
 }
+
+const runToast = () => {
+    toastIsShow.value = true;
+    setTimeout(() => {
+        toastIsShow.value = false;
+    }, 3000);
+};
+
+const copyCheck = () => {
+    copied.value = true;
+    setTimeout(() => {
+        copied.value = false;
+    }, 1500);
+};
 </script>
 
 <template>
-    <div class="border rounded-lg p-3 flex items-center gap-2 overflow-hidden">
-        <img
-            class="object-contain object-center w-14"
-            :src="route('url.qr', url.url_key)"
-            alt="QR CODE">
-        <div>
-            <h4 class="font-bold text-lg flex gap-2 items-center overflow-hidden">
+    <div class="border max-w-full rounded-lg p-3 grid grid-cols-12 items-center gap-2">
+        <q-r-code-link  class="col-span-1 md:col-span-2" :url-key="url.url_key"/>
+        <div class="col-span-11 md:col-span-10">
+            <h4 class="font-bold text-sm md:text-base w-full max-w-full overflow-x-hidden whitespace-nowrap">
                 <a href="#" @click.prevent="copyToClipboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor" class="size-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                    </svg>
+                    <ClipboardDocumentIcon v-if="!copied"
+                        class="size-4 inline"
+                    />
+                    <ClipboardDocumentCheckIcon v-else
+                        class="size-4 inline"
+                    />
                 </a>
-                {{ url.default_short_url }}
+                <a :href="url.default_short_url" target="_blank">
+                    <ArrowTopRightOnSquareIcon
+                        class="size-4 inline"
+                    />
+                </a>
+                <NavLink :href="route('dashboard.url.show', url.url_key)" class="whitespace-nowrap overflow-x-hidden pl-2">
+                    {{ url.default_short_url }}
+                </NavLink>
             </h4>
-            <div class="flex gap-2 text-sm overflow-hidden">
-                <p>{{ date }}</p>
-                <p>|</p>
-                <p class="max-w-xs overflow-hidden whitespace-nowrap text-ellipsis">{{ url.destination_url }}</p>
+            <div class="text-xs md:text-sm w-full max-w-full overflow-x-hidden whitespace-nowrap">
+                <span>{{ date }}</span>
+                <span class="px-1">|</span>
+                <a target="_blank" :href="url.destination_url" class="max-w-xs">{{ url.destination_url }}</a>
             </div>
         </div>
+        <toast v-model="toastIsShow" message="Ссылка скопирована в буфер обмена!">
+            <template #icon>
+                <ClipboardIcon
+                    class="h-6 w-6 text-white"
+                    aria-hidden="true"
+                />
+            </template>
+        </toast>
     </div>
 
 </template>

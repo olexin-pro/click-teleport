@@ -28,4 +28,8 @@ Route::middleware([
         ->name('dashboard.url.store');
 
 
+    Route::get('/dashboard/url/show/{shortURL:url_key}', [\App\Http\Controllers\UrlController::class, 'show'])
+        ->name('dashboard.url.show');
+
+
 });
